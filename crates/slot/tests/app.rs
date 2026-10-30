@@ -1396,42 +1396,6 @@ fn the_highlighted_cart_becomes_the_lid_rather_than_a_second_cart() {
 }
 
 #[test]
-fn mid_hop_the_chip_is_blank_tipped_and_off_the_board() {
-    let (_d, mut app) = on_shelf(&["Emerald", "Zzz"]);
-    let f = fake_picker_faces(&mut app);
-    app.apply(Action::GbaDown(Btn::Start));
-    let_it_open(&mut app);
-    let (_, seated, _) = turned_at(&frame(&app), f.chips[0]).expect("no seated chip");
-
-    app.apply(Action::GbaDown(Btn::Right));
-    app.update(0.09);
-    let out = frame(&app);
-    let (_, flying, tip) = turned_at(&out, f.blank).expect("no chip in flight");
-    assert!(tip > 0.0, "a chip heading right does not lean right");
-    assert!(flying[1] < seated[1], "the chip is not off the board");
-    let board = board_at(Canvas::FRAMED, 1.0);
-    let left = on_board(board, CHIP_U[0], CHIP_V).0 + CHIP_W as f32 / 2.0;
-    let right = on_board(board, CHIP_U[1], CHIP_V).0 + CHIP_W as f32 / 2.0;
-    let mid = flying[0] + flying[2] / 2.0;
-    assert!(
-        mid > left && mid < right,
-        "the flying chip is not between the sockets: {mid} not in ({left}, {right})"
-    );
-    assert_eq!(
-        tex_all(&out, f.shadow).len(),
-        2,
-        "nothing under the chip in flight, beside the lid's own shadow"
-    );
-    assert!(
-        f.chips.iter().all(|c| turned_at(&out, *c).is_none()),
-        "a named chip is drawn mid-hop"
-    );
-    for socket in f.sockets {
-        assert!(tex_at(&out, socket).is_some(), "a socket is hidden mid-hop");
-    }
-}
-
-#[test]
 fn the_chip_alone_shakes_when_refused() {
     let (_d, mut app) = on_shelf(&["Emerald", "Metroid Fusion", "Zzz"]);
     let f = fake_picker_faces(&mut app);

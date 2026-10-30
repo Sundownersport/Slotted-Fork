@@ -294,9 +294,7 @@ fn white_rects(out: &[Draw]) -> Vec<(f32, f32, f32, f32)> {
                 w,
                 h,
                 colour: [1.0, 1.0, 1.0, 1.0],
-            } => {
-                Some((x, y, w, h))
-            }
+            } => Some((x, y, w, h)),
             _ => None,
         })
         .collect()

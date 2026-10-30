@@ -5506,8 +5506,8 @@ impl App {
         let Some(stem) = self.seated().map(str::to_string) else {
             return;
         };
-        let loaded = self.link_loaded.unwrap_or(serial_option(LinkKind::Cable));
         let (_, serial) = self.link_mode(&stem);
+        let loaded = self.link_loaded.unwrap_or(serial);
         if serial == loaded {
             return self.start_link(
                 LinkStarter::spawn(role.role(), link_port()),
