@@ -3,11 +3,9 @@
 
 # What is Slotted Fork?
 
-A joke, not a serious project, for fun and being silly.
+A joke, __not a serious project__, for fun and being silly.
 
-Hi K-Wall!
-
-Uses armGBA!
+Uses armGBA https://github.com/MagnominusGit/armGBA
 
 Come hang out on the slot [Discord](https://discord.gg/NYRWsSuPUu).
 
@@ -20,8 +18,7 @@ My goal with this project was to recreate the feeling of playing my GBA SP in th
 but with a few modern creature comforts.
 
 Nothing about this project is exciting or groundbreaking from a technological perspective, and as a
-result, I delegated the glue code. mGBA and gpSP have been around forever and are the true stars of
-this show. The incredible skeuomorphic art is the work of [Markus](https://github.com/MarkusMaribu), an
+result, I delegated the glue code. The incredible skeuomorphic art is the work of [Markus](https://github.com/MarkusMaribu), an
 artist who saw the bare-bones version and offered to dress it up.
 
 I understand if my use of AI is a dealbreaker for you. Just know it's the least interesting part of
