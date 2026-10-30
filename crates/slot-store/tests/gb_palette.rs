@@ -5,7 +5,10 @@ fn the_list_is_armgbas_four_game_boy_screens() {
     let names: Vec<&str> = GbPalette::all().map(GbPalette::core_name).collect();
     assert_eq!(names, ["Grayscale", "DMG Green", "GB Pocket", "GB Light"]);
     let screens: Vec<&str> = GbPalette::all().map(GbPalette::screen).collect();
-    assert_eq!(screens, ["grayscale", "measured", "pocket measured", "light"]);
+    assert_eq!(
+        screens,
+        ["grayscale", "measured", "pocket measured", "light"]
+    );
 }
 
 #[test]

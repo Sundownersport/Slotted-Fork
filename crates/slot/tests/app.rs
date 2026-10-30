@@ -810,7 +810,11 @@ fn start_opens_no_picker_on_a_game_boy_cart() {
     let (_d, gba) = on_shelf(&["Emerald", "Zzz"]);
     let (_twin, gba_twin) = on_shelf(&["Emerald", "Zzz"]);
     let (picker, _, moved) = start_on(gba, gba_twin);
-    assert_eq!(picker, Some(Core::Armgba), "START stopped opening the picker");
+    assert_eq!(
+        picker,
+        Some(Core::Armgba),
+        "START stopped opening the picker"
+    );
     assert!(moved, "the picker opened and the shelf drew the same frame");
 }
 

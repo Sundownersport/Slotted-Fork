@@ -3,7 +3,7 @@ mod common;
 use common::{app_playing_in, tmp_root_with_carts};
 use slot::app::{App, Phase};
 use slot_input::{Action, Btn};
-use slot_store::{Blending, Core, Platform, Shader, StateRing};
+use slot_store::{Blending, Platform, Shader, StateRing};
 use slot_ui::{
     Draw, QuickMenuFaces, QuickRow, QuickValue, TexId, HINT_EDGE, MOUTH_H, OUT_H, OUT_W,
 };

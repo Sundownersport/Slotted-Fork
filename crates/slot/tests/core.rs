@@ -123,15 +123,7 @@ fn on_mgba_loading_a_state_while_the_game_writes_its_second_flash_bank_keeps_the
     let save_after_formatting = |reload: bool| {
         let mut core =
             LibretroCore::open(&dylib).expect("vendored core is present but would not open");
-        apply_core_options(
-            &mut core,
-            Core::Armgba,
-            Platform::Gba,
-            "cable",
-            false,
-            false,
-            None,
-        );
+        apply_core_options(&mut core, Platform::Gba, "cable", false, None);
         core.load(&rom).expect("mGBA refused the rom");
         for frame in 0..900 {
             core.run_frame(formatting_presses(frame));
@@ -162,15 +154,7 @@ fn fusion() -> Option<(PathBuf, LibretroCore)> {
     let rom = common::repo_root().join("sdcard/Games/GBA/Metroid Fusion.gba");
     let dylib = common::vendored_core().filter(|_| rom.exists())?;
     let mut core = LibretroCore::open(&dylib).expect("vendored core is present but would not open");
-    apply_core_options(
-        &mut core,
-        Core::Armgba,
-        Platform::Gba,
-        "cable",
-        false,
-        false,
-        None,
-    );
+    apply_core_options(&mut core, Platform::Gba, "cable", false, None);
     core.load(&rom).expect("mGBA refused the rom");
     Some((rom, core))
 }

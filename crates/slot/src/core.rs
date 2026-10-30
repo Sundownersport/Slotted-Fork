@@ -48,7 +48,9 @@ pub fn open_core(
     palette: Option<GbColors>,
 ) -> Opened {
     let paths = candidates(root, core);
-    match open_named(root, core, platform, serial, colour, blending, palette, &paths) {
+    match open_named(
+        root, core, platform, serial, colour, blending, palette, &paths,
+    ) {
         Some(core) => Opened { core, named: true },
         None => {
             report_missing(core, &paths);
@@ -257,7 +259,10 @@ mod tests {
         assert!(!paths.is_empty());
         for path in &paths {
             let name = path.file_name().unwrap().to_str().unwrap();
-            assert!(name.starts_with("armgba_libretro"), "{name} is not armGBA's");
+            assert!(
+                name.starts_with("armgba_libretro"),
+                "{name} is not armGBA's"
+            );
         }
     }
 

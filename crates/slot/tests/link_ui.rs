@@ -1013,7 +1013,10 @@ fn a_reload_that_fails_goes_back_to_the_mode_the_game_came_from() {
     let _link = common::link_port_lock();
     let (mut app, _d) = switched_and_picked();
     app.set_link_sprites(fake_link_sprites());
-    assert_eq!(app.take_link_reload(), Some(("Emerald".to_string(), "wireless")));
+    assert_eq!(
+        app.take_link_reload(),
+        Some(("Emerald".to_string(), "wireless"))
+    );
     app.link_reload_failed();
     assert_eq!(
         app.take_link_reload(),
@@ -1469,8 +1472,15 @@ fn a_game_boy_cart_opens_the_link_screen_on_the_cable() {
         let mut app = seated_on_platform(&d, Core::Armgba, platform);
         app.set_link_sprites(fake_link_sprites());
         app.apply(Action::GameMenu);
-        assert!(app.game_menu_open(), "{platform:?} was refused its link screen");
-        assert_eq!(app.toast(), None, "{platform:?} opened the screen and said so too");
+        assert!(
+            app.game_menu_open(),
+            "{platform:?} was refused its link screen"
+        );
+        assert_eq!(
+            app.toast(),
+            None,
+            "{platform:?} opened the screen and said so too"
+        );
         assert_eq!(drawn_hardware(&app), LinkKind::Cable, "{platform:?}");
     }
 }
