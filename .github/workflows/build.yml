@@ -1,0 +1,87 @@
+name: build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: card tree
+    runs-on: ubuntu-24.04-arm
+    container: rust:1-bullseye
+    outputs:
+      zip: ${{ steps.package.outputs.zip }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install zip, cmake and Task
+        run: |
+          set -eu
+          sed -i '/bullseye-security/d' /etc/apt/sources.list
+          apt-get -o Acquire::Check-Valid-Until=false update
+          apt-get install -y --no-install-recommends zip cmake g++ zlib1g-dev
+          curl -fsSL https://taskfile.dev/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Name the build
+        id: name
+        run: |
+          set -eu
+          branch="$(echo "$GITHUB_REF_NAME" | tr '/' '-')"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "out=slot-${branch}-$(echo "$GITHUB_SHA" | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+      - name: Build the tree
+        run: task dist:device OUT="${{ steps.name.outputs.out }}"
+
+      - name: Check what is about to ship
+        run: |
+          set -eu
+          out="${{ steps.name.outputs.out }}"
+          file "$out/System/slot" | grep -q aarch64
+          file "$out/System/armgba_libretro.so" | grep -q aarch64
+          test -x "$out/System/slot"
+          sha="$(cat vendor/armgba-src.sha)"
+          test -f "$out/System/licenses/armgba-${sha}.tar.gz"
+          test -f "$out/System/licenses/armgba-${sha}.meta"
+          echo "Newest glibc symbol in the core: $(objdump -T "$out/System/armgba_libretro.so" | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -1)"
+
+      - name: Package
+        id: package
+        run: |
+          set -eu
+          out="${{ steps.name.outputs.out }}"
+          zip="slot-${{ steps.name.outputs.branch }}-h700.zip"
+          zip -qry "$zip" "$out"
+          echo "zip=$zip" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.package.outputs.zip }}
+          path: ${{ steps.package.outputs.zip }}
+          if-no-files-found: error
+
+  beta:
+    name: beta release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.build.outputs.zip }}
+
+      - name: Upload to the beta release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ZIP: ${{ needs.build.outputs.zip }}
+        run: |
+          set -eu
+          tag="beta-$(echo "$GITHUB_REF_NAME" | tr '/' '-')"
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 ||
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "Beta Build ($GITHUB_REF_NAME)" --prerelease --latest=false \
+              --notes "Card tree builds from $GITHUB_REF_NAME"
+          gh release upload "$tag" "$ZIP" --repo "$GITHUB_REPOSITORY" --clobber
