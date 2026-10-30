@@ -9,6 +9,8 @@ Hi K-Wall!
 
 Uses armGBA!
 
+Come hang out on the slot [Discord](https://discord.gg/NYRWsSuPUu).
+
 # AI Disclosure
 
 The Rust frontend, and the SVGs on [slot-cfw.fyi](https://slot-cfw.fyi), were put together by Claude.
@@ -26,6 +28,16 @@ I understand if my use of AI is a dealbreaker for you. Just know it's the least 
 what's here.
 
 Figured I should share the end result of all the wasted water. ✌🏻
+
+---
+
+# Discord Community
+
+slot has a [Discord server](https://discord.gg/NYRWsSuPUu) for questions, sharing setups, and talking about the project.
+
+It is open to everyone in the slot universe. That includes folks running or building forks of slot.
+
+There is no reason for this community to be fragmented so long as we are having fun!
 
 ---
 

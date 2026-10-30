@@ -5,7 +5,12 @@ use slot_store::{Blending, Core, GbColors, Platform};
 
 use crate::root;
 
+pub use slot_store::SUNLIGHT_MAX;
+
 const CORE_ENV: &str = "SLOT_CORE";
+
+pub const SUNLIGHT_OPTION: &str = "armgba_solar_sensor";
+const SUNLIGHT_NOON: i64 = 8;
 
 pub fn dylib_name(core: Core) -> String {
     format!(
@@ -166,6 +171,11 @@ pub fn colour_option(
         _ => "armgba_gb_color_correction",
     };
     Some((key, if on { "enabled" } else { "disabled" }))
+}
+
+pub fn sunlight_at(local_secs: i64) -> u8 {
+    let from_noon = (local_secs.rem_euclid(86_400) / 60 - 720).abs();
+    (SUNLIGHT_NOON * (360 - from_noon) / 360).max(0) as u8
 }
 
 pub fn blend_option(which: Core, blending: Blending) -> (&'static str, &'static str) {
