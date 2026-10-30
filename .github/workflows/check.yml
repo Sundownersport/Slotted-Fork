@@ -12,9 +12,17 @@ permissions:
 jobs:
   host:
     name: fmt, clippy and tests
-    runs-on: macos-latest
+    runs-on: ubuntu-24.04-arm
+    container: rust:1-bullseye
     steps:
       - uses: actions/checkout@v7
+
+      - name: Install ALSA and udev headers
+        run: |
+          set -eu
+          sed -i '/bullseye-security/d' /etc/apt/sources.list
+          apt-get -o Acquire::Check-Valid-Until=false update
+          apt-get install -y --no-install-recommends libasound2-dev libudev-dev pkg-config
 
       - name: Format
         run: cargo fmt --all -- --check
