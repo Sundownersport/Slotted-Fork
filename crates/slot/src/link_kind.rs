@@ -38,28 +38,15 @@ pub fn link_kind(code: &str, title: &str, clean: bool) -> LinkKind {
     }
 }
 
-pub fn serial_option(chosen: LinkKind, auto: LinkKind, code: &str, title: &str) -> &'static str {
-    if chosen == auto {
-        return "auto";
-    }
+pub fn serial_option(chosen: LinkKind) -> &'static str {
     match chosen {
-        LinkKind::Wireless => "rfu",
-        LinkKind::Cable if pokemon(code, title) => "mul_poke",
-        LinkKind::Cable if code.starts_with("AWR") => "mul_aw1",
-        LinkKind::Cable if code.starts_with("AW2") => "mul_aw2",
-        LinkKind::Cable => "auto",
+        LinkKind::Cable => "cable",
+        LinkKind::Wireless => "wireless",
     }
 }
 
 pub fn link_dual(code: &str, title: &str) -> bool {
     pokemon(code, title) && WIRELESS.contains(&code)
-}
-
-pub fn link_carried(code: &str, title: &str) -> bool {
-    WIRELESS.contains(&code)
-        || pokemon(code, title)
-        || code.starts_with("AWR")
-        || code.starts_with("AW2")
 }
 
 fn pokemon(code: &str, title: &str) -> bool {

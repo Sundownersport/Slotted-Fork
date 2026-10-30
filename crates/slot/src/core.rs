@@ -46,12 +46,9 @@ pub fn open_core(
     colour: bool,
     blending: Blending,
     palette: Option<GbColors>,
-    link: Option<u8>,
 ) -> Opened {
     let paths = candidates(root, core);
-    match open_named(
-        root, core, platform, serial, colour, blending, palette, link, &paths,
-    ) {
+    match open_named(root, core, platform, serial, colour, blending, palette, &paths) {
         Some(core) => Opened { core, named: true },
         None => {
             report_missing(core, &paths);
@@ -90,7 +87,6 @@ pub fn open_core_for_palette(
         colour,
         Blending::Off,
         palette,
-        None,
         paths,
     )
     .unwrap_or_else(|| {
@@ -108,7 +104,6 @@ fn open_named(
     colour: bool,
     blending: Blending,
     palette: Option<GbColors>,
-    link: Option<u8>,
     paths: &[PathBuf],
 ) -> Option<Box<dyn RetroCore>> {
     let bios = root::bios_dir(root);
@@ -119,19 +114,8 @@ fn open_named(
         }
         match LibretroCore::open_with(path, &bios, &saves) {
             Ok(mut opened) => {
-                apply_core_options(
-                    &mut opened,
-                    core,
-                    platform,
-                    serial,
-                    root::has_real_bios(root),
-                    colour,
-                    palette,
-                );
+                apply_core_options(&mut opened, platform, serial, colour, palette);
                 apply_blending(&mut opened, core, blending);
-                if let Some(player) = link {
-                    apply_link_options(&mut opened, core, player);
-                }
                 eprintln!("slot: core {}", path.display());
                 return Some(Box::new(opened));
             }
@@ -171,53 +155,24 @@ fn report_missing(core: Core, paths: &[PathBuf]) {
 }
 
 pub fn colour_option(
-    which: Core,
+    _which: Core,
     platform: Platform,
     on: bool,
 ) -> Option<(&'static str, &'static str)> {
-    match which {
-        Core::Mgba => Some((
-            "mgba_color_correction",
-            if on && platform == Platform::Gb {
-                "GBC"
-            } else if on {
-                "Auto"
-            } else {
-                "OFF"
-            },
-        )),
-        Core::Gpsp => Some((
-            "gpsp_color_correction",
-            if on { "enabled" } else { "disabled" },
-        )),
-    }
-}
-
-pub fn game_boy_player(platform: Platform, rom: &Path) -> bool {
-    platform == Platform::Gba
-        && !slot_store::header_code(rom).is_some_and(|code| code.starts_with('M'))
-}
-
-pub fn apply_game_boy_player(
-    core: &mut dyn RetroCore,
-    which: Core,
-    platform: Platform,
-    rom: &Path,
-) {
-    if which == Core::Mgba {
-        let on = game_boy_player(platform, rom);
-        core.set_option("mgba_force_gbp", if on { "ON" } else { "OFF" });
-    }
+    let key = match platform.hardware() {
+        Platform::Gba => "armgba_color_correction",
+        _ => "armgba_gb_color_correction",
+    };
+    Some((key, if on { "enabled" } else { "disabled" }))
 }
 
 pub fn blend_option(which: Core, blending: Blending) -> (&'static str, &'static str) {
-    match (which, blending.on(which)) {
-        (Core::Mgba, Blending::Off) => ("mgba_interframe_blending", "OFF"),
-        (Core::Mgba, Blending::Mix) => ("mgba_interframe_blending", "mix"),
-        (Core::Mgba, Blending::Ghosting) => ("mgba_interframe_blending", "lcd_ghosting"),
-        (Core::Gpsp, Blending::Off) => ("gpsp_frame_mixing", "disabled"),
-        (Core::Gpsp, Blending::Mix | Blending::Ghosting) => ("gpsp_frame_mixing", "enabled"),
-    }
+    let value = match blending.on(which) {
+        Blending::Off => "disabled",
+        Blending::Mix => "half",
+        Blending::Ghosting => "enabled",
+    };
+    ("armgba_lcd_ghosting", value)
 }
 
 pub fn apply_blending(core: &mut LibretroCore, which: Core, blending: Blending) {
@@ -225,52 +180,34 @@ pub fn apply_blending(core: &mut LibretroCore, which: Core, blending: Blending) 
     core.set_option(key, value);
 }
 
-pub fn apply_link_options(core: &mut LibretroCore, which: Core, player: u8) {
-    if which != Core::Mgba {
-        return;
+pub fn gb_screen_options(palette: Option<GbColors>) -> [(&'static str, &'static str); 2] {
+    match palette {
+        Some(GbColors::Palette(p)) => [
+            ("armgba_gb_model", "Game Boy"),
+            ("armgba_gb_screen", p.screen()),
+        ],
+        _ => [
+            ("armgba_gb_model", "Game Boy Color"),
+            ("armgba_gb_screen", "measured"),
+        ],
     }
-    core.set_option("mgba_link", "on");
-    core.set_option("mgba_link_player", &player.to_string());
-    eprintln!("slot: core: link mode on, player {player}");
 }
 
 pub fn apply_core_options(
     core: &mut LibretroCore,
-    which: Core,
     platform: Platform,
     serial: &str,
-    bios: bool,
     colour: bool,
     palette: Option<GbColors>,
 ) {
-    core.set_option(&format!("{}_frameskip", which.as_str()), "auto");
-    if which == Core::Mgba {
-        core.set_option("mgba_sgb_borders", "OFF");
-        match palette {
-            Some(p) => {
-                core.set_option("mgba_gb_model", "Game Boy");
-                core.set_option("mgba_gb_colors_preset", "0");
-                core.set_option("mgba_gb_colors", p.core_name());
-            }
-            None => {
-                core.set_option("mgba_gb_model", "Autodetect");
-                core.set_option("mgba_gb_colors_preset", "1");
-                core.set_option("mgba_gb_colors", "GBC Dark Green →A");
-            }
-        }
-        if let Some((key, value)) = colour_option(which, platform, colour) {
-            core.set_option(key, value);
-        }
+    core.set_option("armgba_restart_buttons", "off");
+    core.set_option("armgba_link_mode", "separate");
+    core.set_option("armgba_link_port", serial);
+    for (key, value) in gb_screen_options(palette) {
+        core.set_option(key, value);
     }
-    if which == Core::Gpsp {
-        core.set_option("gpsp_serial", serial);
-        core.set_option("gpsp_rtc_time_source", "system");
-        if bios {
-            core.set_option("gpsp_boot_mode", "bios");
-        }
-        if let Some((key, value)) = colour_option(which, platform, colour) {
-            core.set_option(key, value);
-        }
+    if let Some((key, value)) = colour_option(Core::Armgba, platform, colour) {
+        core.set_option(key, value);
     }
 }
 
@@ -282,64 +219,29 @@ mod tests {
     static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
-    fn each_core_spells_frame_blending_its_own_way() {
-        for (which, blending, want) in [
-            (
-                Core::Mgba,
-                Blending::Off,
-                ("mgba_interframe_blending", "OFF"),
-            ),
-            (
-                Core::Mgba,
-                Blending::Mix,
-                ("mgba_interframe_blending", "mix"),
-            ),
-            (
-                Core::Mgba,
-                Blending::Ghosting,
-                ("mgba_interframe_blending", "lcd_ghosting"),
-            ),
-            (Core::Gpsp, Blending::Off, ("gpsp_frame_mixing", "disabled")),
-            (Core::Gpsp, Blending::Mix, ("gpsp_frame_mixing", "enabled")),
-            (
-                Core::Gpsp,
-                Blending::Ghosting,
-                ("gpsp_frame_mixing", "enabled"),
-            ),
+    fn blending_is_armgbas_lcd_ghosting() {
+        for (blending, want) in [
+            (Blending::Off, "disabled"),
+            (Blending::Mix, "half"),
+            (Blending::Ghosting, "enabled"),
         ] {
             assert_eq!(
-                blend_option(which, blending),
-                want,
-                "{which:?} {blending:?}"
+                blend_option(Core::Armgba, blending),
+                ("armgba_lcd_ghosting", want),
+                "{blending:?}"
             );
         }
     }
 
     #[test]
-    fn each_core_spells_colour_correction_its_own_way() {
+    fn colour_correction_picks_the_consoles_own_option() {
         assert_eq!(
-            colour_option(Core::Mgba, Platform::Gba, true),
-            Some(("mgba_color_correction", "Auto"))
+            colour_option(Core::Armgba, Platform::Gba, true),
+            Some(("armgba_color_correction", "enabled"))
         );
         assert_eq!(
-            colour_option(Core::Mgba, Platform::Gba, false),
-            Some(("mgba_color_correction", "OFF"))
-        );
-        assert_eq!(
-            colour_option(Core::Gpsp, Platform::Gba, true),
-            Some(("gpsp_color_correction", "enabled"))
-        );
-        assert_eq!(
-            colour_option(Core::Gpsp, Platform::Gba, false),
-            Some(("gpsp_color_correction", "disabled"))
-        );
-    }
-
-    #[test]
-    fn mgba_uses_gbc_correction_for_game_boy_games() {
-        assert_eq!(
-            colour_option(Core::Mgba, Platform::Gb, true),
-            Some(("mgba_color_correction", "GBC"))
+            colour_option(Core::Armgba, Platform::Gb, false),
+            Some(("armgba_gb_color_correction", "disabled"))
         );
     }
 
@@ -348,23 +250,14 @@ mod tests {
     }
 
     #[test]
-    fn candidates_search_the_named_cores_own_filename_only() {
+    fn candidates_search_armgbas_own_filename_only() {
         let _g = lock();
         std::env::remove_var(CORE_ENV);
-
-        let root = Path::new("/root");
-        let mgba = candidates(root, Core::Mgba);
-        let gpsp = candidates(root, Core::Gpsp);
-        assert_ne!(mgba, gpsp, "the two cores searched the same paths");
-        assert!(!mgba.is_empty());
-        assert!(!gpsp.is_empty());
-        for path in &mgba {
+        let paths = candidates(Path::new("/root"), Core::Armgba);
+        assert!(!paths.is_empty());
+        for path in &paths {
             let name = path.file_name().unwrap().to_str().unwrap();
-            assert!(name.starts_with("mgba_libretro"), "{name} is not mGBA's");
-        }
-        for path in &gpsp {
-            let name = path.file_name().unwrap().to_str().unwrap();
-            assert!(name.starts_with("gpsp_libretro"), "{name} is not gpSP's");
+            assert!(name.starts_with("armgba_libretro"), "{name} is not armGBA's");
         }
     }
 
@@ -374,23 +267,17 @@ mod tests {
         std::env::remove_var(CORE_ENV);
         let root = Path::new("/some/content/root");
         assert_eq!(
-            candidates(root, Core::Gpsp)[0],
-            root.join("System").join(dylib_name(Core::Gpsp)),
+            candidates(root, Core::Armgba)[0],
+            root.join("System").join(dylib_name(Core::Armgba)),
         );
     }
 
     #[test]
-    fn the_env_override_ignores_which_core_was_asked_for() {
+    fn the_env_override_wins() {
         let _g = lock();
         std::env::set_var(CORE_ENV, "/dev/null/named-core");
-        let root = Path::new("/root");
-        let mgba = candidates(root, Core::Mgba);
-        let gpsp = candidates(root, Core::Gpsp);
+        let paths = candidates(Path::new("/root"), Core::Armgba);
         std::env::remove_var(CORE_ENV);
-        assert_eq!(mgba, vec![PathBuf::from("/dev/null/named-core")]);
-        assert_eq!(
-            mgba, gpsp,
-            "the override stopped winning for one of the cores"
-        );
+        assert_eq!(paths, vec![PathBuf::from("/dev/null/named-core")]);
     }
 }

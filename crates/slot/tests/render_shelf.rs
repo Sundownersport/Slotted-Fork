@@ -166,7 +166,7 @@ fn start_draws_the_plain_shelf_on_a_game_boy_cart() {
     let after = shot(&pressed, &mut c, "gba-after-start");
     assert_eq!(
         pressed.core_picker(),
-        Some(Core::Mgba),
+        Some(Core::Armgba),
         "START stopped opening the picker"
     );
     assert!(

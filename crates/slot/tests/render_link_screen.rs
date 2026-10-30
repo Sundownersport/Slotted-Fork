@@ -14,8 +14,8 @@ use slot::link_start::{LinkFail, LinkStarter, LinkStep};
 use slot_input::Action;
 use slot_store::Core;
 use slot_ui::{
-    arrows_hint_face, hint_face, link_art, menu_face, toast_face, Canvas, CartFace, Draw, TexId,
-    Toast, UndoFace, OUT_H, OUT_W, PORT_Y,
+    arrows_hint_face, hint_face, link_art, menu_face, Canvas, CartFace, Draw, TexId, UndoFace,
+    OUT_H, OUT_W, PORT_Y,
 };
 
 struct Face {
@@ -333,7 +333,7 @@ fn legend_pixels(title: &str, code: &str, name: &str) -> Vec<u8> {
     common::write_retail_header(&d, "Cart", title, code);
     let mut app = common::boot(d.path());
     app.apply(Action::Insert);
-    app.set_core(Core::Gpsp);
+    app.set_core(Core::Armgba);
     app.on_core_ready();
     for _ in 0..120 {
         app.update(1.0 / 60.0);
@@ -358,7 +358,7 @@ fn connected_legend_pixels(name: &str) -> Vec<u8> {
     common::write_retail_header(&d, "Cart", "POKEMON RUBY", "AXVE");
     let mut app = common::boot(d.path());
     app.apply(Action::Insert);
-    app.set_core(Core::Gpsp);
+    app.set_core(Core::Armgba);
     app.on_core_ready();
     for _ in 0..120 {
         app.update(1.0 / 60.0);
@@ -405,94 +405,6 @@ fn the_connected_screen_shows_back_and_end_link() {
         ink(&px),
         cap_ink("B", "Back") + cap_ink("A", "End Link"),
         "the row is not exactly a Back cap and an End Link cap"
-    );
-}
-
-fn toast_faces() -> Vec<(TexId, Face)> {
-    Toast::all()
-        .into_iter()
-        .map(|t| (TexId::from_raw(800 + t.index()), toast_face(t).into()))
-        .collect()
-}
-
-fn banner_pixels(core: Core, title: &str, code: &str, name: &str) -> Vec<u8> {
-    let d = common::tmp_root_with_carts(&["Zzz"]);
-    common::write_retail_header(&d, "Cart", title, code);
-    let mut app = common::boot(d.path());
-    app.apply(Action::Insert);
-    app.set_core(core);
-    app.on_core_ready();
-    for _ in 0..120 {
-        app.update(1.0 / 60.0);
-    }
-    let faces = toast_faces();
-    app.set_toast_faces(faces.iter().map(|(t, _)| *t).collect());
-    app.apply(Action::GameMenu);
-    assert!(
-        !app.game_menu_open(),
-        "{code} on {core:?} opened a link screen instead of refusing"
-    );
-    let mut out = Vec::new();
-    app.draw(&mut out);
-    let banner: Vec<Draw> = out
-        .into_iter()
-        .filter(|d| matches!(*d, Draw::Tex { tex, .. } if faces.iter().any(|(t, _)| *t == tex)))
-        .collect();
-    let px = composite(&banner, &faces);
-    dump(&px, name);
-    px
-}
-
-fn banner_ink(t: Toast) -> usize {
-    let f: Face = toast_face(t).into();
-    let (w, h) = (f.w as f32, f.h as f32);
-    let tex = TexId::from_raw(1);
-    let draw = Draw::Tex {
-        x: 100.0,
-        y: 20.0,
-        w,
-        h,
-        tex,
-        alpha: 1.0,
-    };
-    ink(&composite(&[draw], &[(tex, f)]))
-}
-
-#[test]
-fn a_cart_nothing_can_link_reads_no_link_support_on_the_glass() {
-    let px = banner_pixels(Core::Gpsp, "APOTRIS", "2ATE", "banner-apotris-gpsp");
-    assert!(
-        ink(&px) > 0,
-        "the refusal put no banner on the frame at all"
-    );
-    assert_eq!(
-        ink(&px),
-        banner_ink(Toast::NoLink),
-        "the banner is not the NO LINK SUPPORT line"
-    );
-    assert_ne!(
-        banner_ink(Toast::NoLink),
-        banner_ink(Toast::NeedsGpsp),
-        "the two sentences carry the same ink, so this frame proves nothing"
-    );
-    let (first, last) = inked_rows(&px);
-    assert!(
-        last < OUT_H as usize / 4,
-        "the banner is not up in the plate band: rows {first}..{last}"
-    );
-}
-
-#[test]
-fn a_cart_gpsp_can_link_reads_please_switch_to_gpsp() {
-    let px = banner_pixels(Core::Mgba, "POKEMON EMER", "BPEE", "banner-emerald-mgba");
-    assert!(
-        ink(&px) > 0,
-        "the refusal put no banner on the frame at all"
-    );
-    assert_eq!(
-        ink(&px),
-        banner_ink(Toast::NeedsGpsp),
-        "the banner is not the PLEASE SWITCH TO GPSP line"
     );
 }
 
@@ -553,7 +465,7 @@ fn first_step_pixels(warm: bool, name: &str) -> (Vec<u8>, Vec<RadioJob>) {
     common::write_retail_header(&d, "Cart", "POKEMON RUBY", "AXVE");
     let mut app = common::boot(d.path());
     app.apply(Action::Insert);
-    app.set_core(Core::Gpsp);
+    app.set_core(Core::Armgba);
     app.on_core_ready();
     for _ in 0..120 {
         app.update(1.0 / 60.0);

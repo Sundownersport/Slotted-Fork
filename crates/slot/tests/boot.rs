@@ -219,7 +219,7 @@ fn a_loose_card_shows_an_empty_shelf_and_nothing_on_it_is_moved() {
     std::fs::write(d.path().join("Games/Emerald.gba"), vec![0u8; 0x100]).unwrap();
     std::fs::write(d.path().join("Saves/Emerald.sav"), vec![7u8; 0x10000]).unwrap();
     std::fs::write(d.path().join("Labels/Emerald.png"), b"png").unwrap();
-    let old_states = d.path().join("States/mgba/Emerald");
+    let old_states = d.path().join("States/armgba/Emerald");
     std::fs::create_dir_all(&old_states).unwrap();
     std::fs::write(old_states.join("resume.state"), b"resume").unwrap();
 

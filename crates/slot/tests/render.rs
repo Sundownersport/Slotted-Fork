@@ -83,7 +83,7 @@ fn a_saved_frame_arrives_intact_on_its_screenshot() {
     };
     let src = mock_frame(13);
     let d = tempfile::tempdir().expect("tempdir");
-    let ring = StateRing::new(d.path(), Platform::Gba, Core::Mgba, "Mock");
+    let ring = StateRing::new(d.path(), Platform::Gba, Core::Armgba, "Mock");
     let stamp = "2026-08-09_14-32-05";
     ring.push(b"state", &thumb::png(&src).expect("encode"), stamp)
         .expect("push");
@@ -117,7 +117,7 @@ fn the_switcher_magnifies_its_screenshot_without_resampling_it() {
     };
     let src = mock_frame(21);
     let d = tempfile::tempdir().expect("tempdir");
-    let ring = StateRing::new(d.path(), Platform::Gba, Core::Mgba, "Mock");
+    let ring = StateRing::new(d.path(), Platform::Gba, Core::Armgba, "Mock");
     ring.push(
         b"state",
         &thumb::png(&src).expect("encode"),

@@ -104,9 +104,9 @@ fn picture(
 ) -> Vec<u8> {
     let mut core = slot::core::open_core_for_palette(
         root,
-        Core::Mgba,
+        Core::Armgba,
         platform,
-        "auto",
+        "cable",
         colour,
         palette.map(slot_store::GbColors::Palette),
         std::slice::from_ref(&dylib.to_path_buf()),
@@ -150,7 +150,11 @@ fn the_cards_setting_reaches_the_core_through_the_session() {
             eprintln!("no GBA cart on this machine's card, skipping");
             return;
         };
-        std::fs::copy(&dylib, d.path().join("System/mgba_libretro.dylib")).expect("plant a core");
+        let planted = d
+            .path()
+            .join("System")
+            .join(slot::core::dylib_name(Core::Armgba));
+        std::fs::copy(&dylib, planted).expect("plant a core");
         let state = SlotState {
             clock_set: true,
             colour_correction_gba: colour,

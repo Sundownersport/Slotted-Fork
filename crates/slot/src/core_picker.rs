@@ -112,8 +112,7 @@ impl CorePicker {
                 self.begin_close(now);
                 return Outcome::Nothing;
             }
-            Press::Left => Core::Mgba,
-            Press::Right => Core::Gpsp,
+            Press::Left | Press::Right => Core::Armgba,
         };
         if self.waiting() {
             return Outcome::Nothing;
@@ -148,7 +147,7 @@ impl CorePicker {
         let shake = self.refusal.map_or(0.0, |r| r.offset(now));
         match (self.hop, self.hop_progress(now)) {
             (Some(hop), Some(q)) => {
-                let rightward = hop.from == Core::Mgba;
+                let rightward = hop.from.index() == 0;
                 let lean = if rightward { 1.0 } else { -1.0 };
                 let arc = (std::f32::consts::PI * q).sin();
                 Chip {

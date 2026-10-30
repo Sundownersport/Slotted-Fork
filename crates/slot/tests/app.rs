@@ -810,53 +810,8 @@ fn start_opens_no_picker_on_a_game_boy_cart() {
     let (_d, gba) = on_shelf(&["Emerald", "Zzz"]);
     let (_twin, gba_twin) = on_shelf(&["Emerald", "Zzz"]);
     let (picker, _, moved) = start_on(gba, gba_twin);
-    assert_eq!(picker, Some(Core::Mgba), "START stopped opening the picker");
+    assert_eq!(picker, Some(Core::Armgba), "START stopped opening the picker");
     assert!(moved, "the picker opened and the shelf drew the same frame");
-}
-
-#[test]
-fn start_on_the_shelf_opens_the_core_picker_on_the_carts_current_core() {
-    let (d, mut app) = on_shelf(&["Emerald", "Zzz"]);
-    assert_eq!(app.selected_stem(), Some("Emerald"));
-
-    app.apply(Action::GbaDown(Btn::Start));
-    assert_eq!(
-        app.core_picker(),
-        Some(Core::Mgba),
-        "a cart with no line of its own runs the default core"
-    );
-    app.apply(Action::GbaDown(Btn::B));
-    let_it_close(&mut app);
-
-    slot_store::write_selected_core(d.path(), "Emerald", Core::Gpsp).unwrap();
-    app.apply(Action::GbaDown(Btn::Start));
-    assert_eq!(
-        app.core_picker(),
-        Some(Core::Gpsp),
-        "the chip should start in the core the cart already uses"
-    );
-}
-
-#[test]
-fn choosing_a_core_writes_it_and_closes() {
-    let (d, mut app) = on_shelf(&["Emerald", "Zzz"]);
-    fake_picker_faces(&mut app);
-    app.apply(Action::GbaDown(Btn::Start));
-    app.apply(Action::GbaDown(Btn::Right));
-    app.apply(Action::GbaDown(Btn::A));
-
-    assert_eq!(slot_store::core_for(d.path(), "Emerald"), Core::Gpsp);
-    assert_eq!(
-        slot_store::core_for(d.path(), "Zzz"),
-        Core::Mgba,
-        "the choice landed on a cart the shelf was not on"
-    );
-    let_it_close(&mut app);
-    assert_eq!(
-        app.core_picker(),
-        None,
-        "the picker stayed open after a choice"
-    );
 }
 
 #[test]
@@ -871,42 +826,8 @@ fn b_closes_the_picker_without_writing() {
     assert_eq!(app.core_picker(), None);
     assert_eq!(
         slot_store::core_for(d.path(), "Emerald"),
-        Core::Mgba,
+        Core::Armgba,
         "backing out of the picker still changed the cart"
-    );
-}
-
-#[test]
-fn the_chip_goes_where_the_arrow_points_and_does_not_wrap() {
-    let (_d, mut app) = on_shelf(&["Emerald", "Zzz"]);
-    fake_picker_faces(&mut app);
-    app.apply(Action::GbaDown(Btn::Start));
-
-    app.apply(Action::GbaDown(Btn::Left));
-    assert_eq!(
-        app.core_picker(),
-        Some(Core::Mgba),
-        "left from mGBA wrapped round"
-    );
-    assert_ne!(
-        app.core_picker_chip().unwrap().shake,
-        0.0,
-        "a press toward the chip's own socket went unanswered"
-    );
-    assert_eq!(
-        app.shelf_shake(),
-        0.0,
-        "the shelf shook as well as the chip"
-    );
-
-    app.apply(Action::GbaDown(Btn::Right));
-    assert_eq!(app.core_picker(), Some(Core::Gpsp));
-    let_it_hop(&mut app);
-    app.apply(Action::GbaDown(Btn::Right));
-    assert_eq!(
-        app.core_picker(),
-        Some(Core::Gpsp),
-        "right from gpSP wrapped round"
     );
 }
 
@@ -920,41 +841,6 @@ fn a_shelf_refusal_does_not_shake_once_the_picker_takes_over() {
         0.0,
         "the shelf shook under an open picker"
     );
-}
-
-#[test]
-fn back_mid_hop_turns_round_and_onward_does_nothing() {
-    let (_d, mut app) = on_shelf(&["Emerald", "Zzz"]);
-    fake_picker_faces(&mut app);
-    app.apply(Action::GbaDown(Btn::Start));
-    app.apply(Action::GbaDown(Btn::Right));
-    app.update(0.05);
-
-    app.apply(Action::GbaDown(Btn::Right));
-    assert_eq!(app.core_picker(), Some(Core::Gpsp));
-    assert_eq!(
-        app.core_picker_chip().unwrap().shake,
-        0.0,
-        "onward mid-hop was refused"
-    );
-
-    app.apply(Action::GbaDown(Btn::Left));
-    assert_eq!(
-        app.core_picker(),
-        Some(Core::Mgba),
-        "back mid-hop did not turn the chip round"
-    );
-}
-
-#[test]
-fn a_mid_hop_writes_where_the_chip_is_heading() {
-    let (d, mut app) = on_shelf(&["Emerald", "Zzz"]);
-    fake_picker_faces(&mut app);
-    app.apply(Action::GbaDown(Btn::Start));
-    app.apply(Action::GbaDown(Btn::Right));
-    app.update(0.05);
-    app.apply(Action::GbaDown(Btn::A));
-    assert_eq!(slot_store::core_for(d.path(), "Emerald"), Core::Gpsp);
 }
 
 #[test]
@@ -983,7 +869,7 @@ fn presses_during_the_close_and_keys_the_picker_does_not_use_do_nothing() {
         app.apply(Action::GbaDown(key));
         assert_eq!(
             app.core_picker(),
-            Some(Core::Mgba),
+            Some(Core::Armgba),
             "{key:?} moved the chip"
         );
     }
@@ -995,7 +881,7 @@ fn presses_during_the_close_and_keys_the_picker_does_not_use_do_nothing() {
     assert_eq!(app.core_picker(), None);
     assert_eq!(
         slot_store::core_for(d.path(), "Emerald"),
-        Core::Mgba,
+        Core::Armgba,
         "a press during the close wrote a core"
     );
 }
@@ -1008,7 +894,7 @@ fn shutting_the_lid_closes_the_picker_without_writing() {
     app.apply(Action::GbaDown(Btn::Right));
     app.apply(Action::LidClose);
     assert_eq!(app.core_picker(), None, "the picker survived the lid");
-    assert_eq!(slot_store::core_for(d.path(), "Emerald"), Core::Mgba);
+    assert_eq!(slot_store::core_for(d.path(), "Emerald"), Core::Armgba);
 }
 
 #[test]
@@ -1403,37 +1289,6 @@ fn the_neighbours_dim_to_a_quarter_while_a_cart_is_open() {
 }
 
 #[test]
-fn the_seated_chip_moves_to_the_socket_it_hopped_to() {
-    let (_d, mut app) = on_shelf(&["Emerald", "Zzz"]);
-    let f = fake_picker_faces(&mut app);
-    app.apply(Action::GbaDown(Btn::Start));
-    let_it_open(&mut app);
-    app.apply(Action::GbaDown(Btn::Right));
-    let_it_hop(&mut app);
-    let out = frame(&app);
-
-    let (x, y) = on_board(board_at(Canvas::FRAMED, 1.0), CHIP_U[1], CHIP_V);
-    let want = grown(
-        Placed {
-            x,
-            y,
-            w: CHIP_W as f32,
-            h: CHIP_H as f32,
-        },
-        TURN_PAD as f32,
-    );
-    let (_, chip, _) = turned_at(&out, f.chips[1]).expect("the chip did not land in gpSP");
-    assert!(
-        near(chip, [want.x.round(), want.y.round(), want.w, want.h]),
-        "the gpSP chip is not in gpSP's socket: {chip:?}"
-    );
-    assert!(
-        turned_at(&out, f.chips[0]).is_none(),
-        "mGBA's chip is still drawn once the hop lands in gpSP"
-    );
-}
-
-#[test]
 fn the_highlighted_cart_becomes_the_lid_rather_than_a_second_cart() {
     let (_d, mut app) = on_shelf(&["Emerald", "Zzz"]);
     let f = fake_picker_faces(&mut app);
@@ -1794,7 +1649,7 @@ fn arrows_pressed_while_the_cart_waits_move_nothing() {
     app.update(0.016);
     assert_eq!(
         app.core_picker(),
-        Some(Core::Mgba),
+        Some(Core::Armgba),
         "a hop ran while the cart waited"
     );
 
@@ -2325,7 +2180,7 @@ fn the_shader_shortcut_does_nothing_on_the_shelf() {
 #[test]
 fn the_shader_shortcut_does_nothing_in_the_save_state_switcher() {
     let d = common::tmp_root_with_carts(&["Emerald", "Fusion"]);
-    slot_store::StateRing::new(d.path(), Platform::Gba, Core::Mgba, "Emerald")
+    slot_store::StateRing::new(d.path(), Platform::Gba, Core::Armgba, "Emerald")
         .push(&[1u8; 64], b"png", "2026-08-09_00-00-00")
         .unwrap();
     let mut a = common::app_in_switcher(d.path(), "Emerald");

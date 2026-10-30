@@ -169,46 +169,6 @@ fn frame_blending_steps_the_running_platform_and_asks_the_core() {
 }
 
 #[test]
-fn on_gpsp_frame_blending_offers_off_and_mix_and_never_lcd_ghosting() {
-    let (_d, mut a) = playing();
-    a.set_core(Core::Gpsp);
-    go_to(&mut a, QuickRow::Blending);
-    let mut seen = Vec::new();
-    for btn in [Btn::Right, Btn::Right, Btn::Right, Btn::Left, Btn::Left] {
-        press(&mut a, btn);
-        seen.push(a.quick_value(QuickRow::Blending).expect("no value"));
-        assert_ne!(a.take_blending(), Some(Blending::Ghosting));
-    }
-    assert_eq!(
-        seen,
-        [
-            QuickValue::Mix,
-            QuickValue::Off,
-            QuickValue::Mix,
-            QuickValue::Off,
-            QuickValue::Mix
-        ]
-    );
-}
-
-#[test]
-fn an_lcd_ghosting_chosen_for_gba_reads_as_mix_on_gpsp() {
-    let (_d, mut a) = playing();
-    go_to(&mut a, QuickRow::Blending);
-    press(&mut a, Btn::Right);
-    press(&mut a, Btn::Right);
-    assert_eq!(a.blending_for(Platform::Gba), Blending::Ghosting);
-    a.set_core(Core::Gpsp);
-    assert_eq!(a.quick_value(QuickRow::Blending), Some(QuickValue::Mix));
-    assert_eq!(a.blending_in_play(), Blending::Mix);
-    assert_eq!(
-        a.quick_value(QuickRow::GbaBlending),
-        Some(QuickValue::Ghosting),
-        "the console's own setting was changed just by playing on gpSP"
-    );
-}
-
-#[test]
 fn palette_steps_the_palette_and_asks_the_core() {
     let (_d, mut a) = playing();
     a.set_palette_live(true);
@@ -295,16 +255,6 @@ fn screenshots_is_hidden_until_a_shot_is_taken() {
         Some(QuickRow::Screenshots),
         "Screenshots does not follow States"
     );
-}
-
-#[test]
-fn a_state_under_another_core_does_not_show_states() {
-    let (d, mut a) = playing();
-    StateRing::new(d.path(), Platform::Gba, slot_store::Core::Gpsp, "Emerald")
-        .push(&[1; 8], b"png", "2026-10-22_17-30-05")
-        .expect("push");
-    a.apply(Action::QuickMenu);
-    assert!(a.in_game_hidden().contains(&QuickRow::States));
 }
 
 #[test]

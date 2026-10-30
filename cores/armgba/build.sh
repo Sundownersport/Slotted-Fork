@@ -17,36 +17,39 @@ sha256() {
 
 stamp() {
 	echo "commit=$1"
-	echo "source=https://github.com/libretro/gpsp/archive/$1.tar.gz"
-	echo "recipe=make platform=arm64"
+	echo "source=https://github.com/MagnominusGit/armGBA/archive/$1.tar.gz"
+	echo "recipe=cmake --target armgba_libretro"
 	echo "device_cflags=$device_cflags"
 	for p in "$here"/*.patch; do
+		[ -e "$p" ] || continue
 		echo "patch=$(basename "$p") sha256:$(sha256 "$p")"
 	done
 }
 
 build() {
 	commit="$1" tarball="$2" work="$3" out="$4"
-	src="$work/gpsp-$commit"
+	src="$work/armGBA-$commit"
+	obj="$work/build"
 
 	rm -rf "$work"
 	mkdir -p "$work"
 	tar -xzf "$tarball" -C "$work"
-	if [ ! -f "$src/Makefile" ]; then
-		echo "$tarball does not hold gpsp-$commit/Makefile" >&2
+	if [ ! -f "$src/CMakeLists.txt" ]; then
+		echo "$tarball does not hold armGBA-$commit/CMakeLists.txt" >&2
 		exit 1
 	fi
 
 	for p in "$here"/*.patch; do
+		[ -e "$p" ] || continue
 		git -C "$src" apply -p1 "$p"
 	done
 
-	CFLAGS="$device_cflags" make -C "$src" platform=arm64 \
-		GIT_VERSION="\"$(printf %s "$commit" | cut -c1-7)\"" \
-		-j"$(getconf _NPROCESSORS_ONLN)"
+	cmake -S "$src" -B "$obj" -DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_C_FLAGS="$device_cflags" -DCMAKE_CXX_FLAGS="$device_cflags" >/dev/null
+	cmake --build "$obj" --target armgba_libretro --parallel "$(getconf _NPROCESSORS_ONLN)"
 
 	mkdir -p "$(dirname "$out")"
-	cp "$src/gpsp_libretro.so" "$out"
+	cp "$obj/armgba_libretro.so" "$out"
 	stamp "$commit" >"$out.meta"
 }
 

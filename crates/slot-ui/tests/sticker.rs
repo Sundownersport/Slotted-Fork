@@ -45,8 +45,7 @@ fn a_missing_gauge_is_not_drawn_as_empty() {
 fn the_compliance_block_is_the_credits() {
     let all = sticker_lines(&fields()).join("\n").to_uppercase();
     for owed in [
-        "MGBA",
-        "GPSP",
+        "ARMGBA",
         "BASEOS BY PVAIBHAV",
         "OPEN SANS",
         "NERD",

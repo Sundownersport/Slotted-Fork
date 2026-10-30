@@ -7,7 +7,7 @@ use slot_store::{Core, Platform, StateRing};
 #[test]
 fn undoing_a_save_removes_it_and_restores_the_evicted_entry() {
     let d = tmp_root_with_carts(&["Emerald"]);
-    let r = StateRing::new(d.path(), Platform::Gba, Core::Mgba, "Emerald");
+    let r = StateRing::new(d.path(), Platform::Gba, Core::Armgba, "Emerald");
     for i in 0..10 {
         r.push(&[i as u8; 64], b"png", &format!("2026-08-09_00-00-{i:02}"))
             .unwrap();
@@ -33,7 +33,7 @@ fn undoing_a_save_removes_it_and_restores_the_evicted_entry() {
 #[test]
 fn a_save_behind_the_newest_stamp_survives_a_full_ring() {
     let d = tmp_root_with_carts(&["Emerald"]);
-    let r = StateRing::new(d.path(), Platform::Gba, Core::Mgba, "Emerald");
+    let r = StateRing::new(d.path(), Platform::Gba, Core::Armgba, "Emerald");
     for i in 0..10 {
         r.push(&[i as u8; 64], b"png", &format!("2099-01-01_00-00-{i:02}"))
             .unwrap();
@@ -64,7 +64,7 @@ fn undo_expires_after_thirty_seconds() {
 #[test]
 fn a_second_save_replaces_the_undo_rather_than_stacking() {
     let d = tmp_root_with_carts(&["Emerald"]);
-    let r = StateRing::new(d.path(), Platform::Gba, Core::Mgba, "Emerald");
+    let r = StateRing::new(d.path(), Platform::Gba, Core::Armgba, "Emerald");
     let mut a = app_playing_in(d.path(), "Emerald");
     a.apply_at(Action::SaveState, 1_000);
     a.apply_at(Action::SaveState, 2_000);
@@ -113,7 +113,7 @@ fn the_label_names_what_will_be_undone() {
 #[test]
 fn x_undoes_from_the_switcher_and_never_from_the_game() {
     let d = tmp_root_with_carts(&["Emerald"]);
-    let r = StateRing::new(d.path(), Platform::Gba, Core::Mgba, "Emerald");
+    let r = StateRing::new(d.path(), Platform::Gba, Core::Armgba, "Emerald");
     let mut a = app_playing_in(d.path(), "Emerald");
     a.apply_at(Action::SaveState, 1_000);
     a.apply_at(Action::GbaDown(Btn::X), 1_100);
@@ -127,7 +127,7 @@ fn x_undoes_from_the_switcher_and_never_from_the_game() {
 #[test]
 fn undoing_twice_does_not_put_the_save_back() {
     let d = tmp_root_with_carts(&["Emerald"]);
-    let r = StateRing::new(d.path(), Platform::Gba, Core::Mgba, "Emerald");
+    let r = StateRing::new(d.path(), Platform::Gba, Core::Armgba, "Emerald");
     let mut a = app_playing_in(d.path(), "Emerald");
     a.apply_at(Action::SaveState, 1_000);
     a.undo(2_000);

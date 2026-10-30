@@ -16,22 +16,16 @@ fn root_with(ini: Option<&str>) -> tempfile::TempDir {
 fn absent_file_means_everything_defaults() {
     let d = root_with(None);
     assert!(read_selected_cores(d.path()).is_empty());
-    assert_eq!(core_for(d.path(), "Emerald"), Core::Mgba);
+    assert_eq!(core_for(d.path(), "Emerald"), Core::Armgba);
 }
 
 #[test]
 fn a_listed_stem_gets_its_core() {
-    let d = root_with(Some("Pokemon - Emerald Version (USA, Europe) = gpsp\n"));
+    let d = root_with(Some("Pokemon - Emerald Version (USA, Europe) = armgba\n"));
     assert_eq!(
-        core_for(d.path(), "Pokemon - Emerald Version (USA, Europe)"),
-        Core::Gpsp
+        read_selected_cores(d.path()).get("Pokemon - Emerald Version (USA, Europe)"),
+        Some(&Core::Armgba)
     );
-}
-
-#[test]
-fn an_unlisted_stem_defaults_to_mgba() {
-    let d = root_with(Some("Emerald = gpsp\n"));
-    assert_eq!(core_for(d.path(), "Metroid Fusion"), Core::Mgba);
 }
 
 #[test]
@@ -43,14 +37,14 @@ fn malformed_lines_are_ignored_rather_than_fatal() {
         "[cores]\n",
         "no equals sign here\n",
         "Emerald = notacore\n",
-        "  Spaced Out   =   gpsp  \n",
-        "= gpsp\n",
+        "  Spaced Out   =   armgba  \n",
+        "= armgba\n",
         "Trailing =\n",
     )));
     let map = read_selected_cores(d.path());
     assert_eq!(
         map.get("Spaced Out"),
-        Some(&Core::Gpsp),
+        Some(&Core::Armgba),
         "whitespace not trimmed"
     );
     assert_eq!(
@@ -58,35 +52,18 @@ fn malformed_lines_are_ignored_rather_than_fatal() {
         None,
         "an unknown core name must not be stored"
     );
-    assert_eq!(core_for(d.path(), "Emerald"), Core::Mgba);
+    assert_eq!(core_for(d.path(), "Emerald"), Core::Armgba);
     assert_eq!(map.len(), 1, "only the one good line should survive");
 }
 
 #[test]
-fn a_later_duplicate_wins() {
-    let d = root_with(Some("Emerald = mgba\nEmerald = gpsp\n"));
-    assert_eq!(core_for(d.path(), "Emerald"), Core::Gpsp);
-}
-
-#[test]
-fn the_last_line_for_a_cart_wins_even_when_it_is_the_typo() {
-    let d = root_with(Some("Emerald = gpsp\nEmerald = notacore\n"));
+fn a_retired_core_name_falls_back_to_armgba() {
+    let d = root_with(Some("Emerald = gpsp\nTetris = mgba\n"));
+    assert!(read_selected_cores(d.path()).is_empty());
+    assert_eq!(core_for(d.path(), "Emerald"), Core::Armgba);
     assert_eq!(
-        core_for(d.path(), "Emerald"),
-        Core::Mgba,
-        "a line the later one superseded is still in force"
-    );
-    assert_eq!(
-        read_selected_cores(d.path()).get("Emerald"),
-        None,
-        "the map and core_for read the same two lines differently"
-    );
-
-    let d = root_with(Some("Emerald = notacore\nEmerald = gpsp\n"));
-    assert_eq!(core_for(d.path(), "Emerald"), Core::Gpsp);
-    assert_eq!(
-        read_selected_cores(d.path()).get("Emerald"),
-        Some(&Core::Gpsp)
+        core_for_platform(d.path(), "Tetris", Platform::Gb),
+        Core::Armgba
     );
 }
 
@@ -96,19 +73,12 @@ fn core_names_round_trip() {
         assert_eq!(Core::parse(c.as_str()), Some(c));
     }
     assert_eq!(
-        Core::parse("MGBA"),
-        Some(Core::Mgba),
+        Core::parse("ARMGBA"),
+        Some(Core::Armgba),
         "case is not the user's problem"
     );
     assert_eq!(Core::parse("nonsense"), None);
-    assert_eq!(Core::default(), Core::Mgba);
-}
-
-#[test]
-fn writing_a_core_creates_the_file_when_absent() {
-    let d = root_with(None);
-    slot_store::write_selected_core(d.path(), "Emerald", Core::Gpsp).unwrap();
-    assert_eq!(core_for(d.path(), "Emerald"), Core::Gpsp);
+    assert_eq!(Core::default(), Core::Armgba);
 }
 
 #[test]
@@ -117,9 +87,9 @@ fn writing_a_core_replaces_that_carts_line_and_leaves_the_rest_alone() {
         "# my notes\n",
         "\n",
         "Emerald = mgba\n",
-        "Metroid Fusion = gpsp\n",
+        "Metroid Fusion = armgba\n",
     )));
-    slot_store::write_selected_core(d.path(), "Emerald", Core::Gpsp).unwrap();
+    write_selected_core(d.path(), "Emerald", Core::Armgba).unwrap();
 
     let text = std::fs::read_to_string(d.path().join("Config/selected_core.txt")).unwrap();
     assert!(
@@ -127,11 +97,10 @@ fn writing_a_core_replaces_that_carts_line_and_leaves_the_rest_alone() {
         "a hand-written comment was destroyed"
     );
     assert!(
-        text.contains("Metroid Fusion = gpsp"),
+        text.contains("Metroid Fusion = armgba"),
         "another cart's entry was lost"
     );
-    assert_eq!(core_for(d.path(), "Emerald"), Core::Gpsp);
-    assert_eq!(core_for(d.path(), "Metroid Fusion"), Core::Gpsp);
+    assert!(text.contains("Emerald = armgba"));
     assert_eq!(
         text.matches("Emerald").count(),
         1,
@@ -140,65 +109,19 @@ fn writing_a_core_replaces_that_carts_line_and_leaves_the_rest_alone() {
 }
 
 #[test]
-fn writing_a_core_appends_a_cart_the_file_has_never_seen() {
-    let d = root_with(Some("Emerald = gpsp\n"));
-    slot_store::write_selected_core(d.path(), "Drill Dozer", Core::Gpsp).unwrap();
-    assert_eq!(core_for(d.path(), "Emerald"), Core::Gpsp);
-    assert_eq!(core_for(d.path(), "Drill Dozer"), Core::Gpsp);
-}
-
-#[test]
-fn writing_the_default_still_records_it() {
-    let d = root_with(Some("Emerald = gpsp\n"));
-    slot_store::write_selected_core(d.path(), "Emerald", Core::Mgba).unwrap();
-    assert_eq!(core_for(d.path(), "Emerald"), Core::Mgba);
-    let text = std::fs::read_to_string(d.path().join("Config/selected_core.txt")).unwrap();
-    assert!(text.contains("Emerald = mgba"));
-}
-
-#[test]
-fn every_platform_defaults_to_mgba() {
+fn every_platform_runs_on_armgba() {
     let d = tempfile::tempdir().unwrap();
-    assert_eq!(
-        core_for_platform(d.path(), "Tetris", Platform::Gb),
-        Core::Mgba
-    );
-    assert_eq!(
-        core_for_platform(d.path(), "Tetris Chromatic", Platform::Gbc),
-        Core::Mgba
-    );
-    assert_eq!(
-        core_for_platform(d.path(), "Emerald", Platform::Gba),
-        Core::Mgba
-    );
+    for (stem, platform) in [
+        ("Tetris", Platform::Gb),
+        ("Tetris Chromatic", Platform::Gbc),
+        ("Emerald", Platform::Gba),
+    ] {
+        assert!(Core::Armgba.runs(platform));
+        assert_eq!(core_for_platform(d.path(), stem, platform), Core::Armgba);
+    }
 }
 
 #[test]
-fn a_cart_can_ask_for_a_non_default_core_by_hand() {
-    let d = tempfile::tempdir().unwrap();
-    write_selected_core(d.path(), "Emerald", Core::Gpsp).unwrap();
-    assert_ne!(Core::default_for(Platform::Gba), Core::Gpsp);
-    assert_eq!(
-        core_for_platform(d.path(), "Emerald", Platform::Gba),
-        Core::Gpsp
-    );
-}
-
-#[test]
-fn a_line_naming_a_core_the_platform_cannot_run_is_dropped() {
-    let d = tempfile::tempdir().unwrap();
-    write_selected_core(d.path(), "Tetris", Core::Gpsp).unwrap();
-    assert_eq!(
-        core_for_platform(d.path(), "Tetris", Platform::Gb),
-        Core::Mgba
-    );
-    assert_eq!(
-        core_for_platform(d.path(), "Tetris", Platform::Gbc),
-        Core::Mgba
-    );
-}
-
-#[test]
-fn the_picker_board_has_exactly_two_sockets() {
-    assert_eq!(Core::ALL.len(), 2);
+fn the_picker_board_has_one_socket() {
+    assert_eq!(Core::ALL.len(), 1);
 }

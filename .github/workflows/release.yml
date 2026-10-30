@@ -23,7 +23,7 @@ jobs:
           set -eu
           sed -i '/bullseye-security/d' /etc/apt/sources.list
           apt-get -o Acquire::Check-Valid-Until=false update
-          apt-get install -y --no-install-recommends zip cmake
+          apt-get install -y --no-install-recommends zip cmake g++ zlib1g-dev
           curl -fsSL https://taskfile.dev/install.sh | sh -s -- -b /usr/local/bin
 
       - name: Build the tree
@@ -34,20 +34,11 @@ jobs:
           set -eu
           out="slot-${GITHUB_REF_NAME}"
           file "$out/System/slot" | grep -q aarch64
-          file "$out/System/mgba_libretro.so" | grep -q aarch64
-          file "$out/System/gpsp_libretro.so" | grep -q aarch64
+          file "$out/System/armgba_libretro.so" | grep -q aarch64
           test -x "$out/System/slot"
-          gpsp_src_sha="$(cat vendor/gpsp-src.sha)"
-          test -f "$out/System/licenses/gpsp-${gpsp_src_sha}.tar.gz"
-          test -f "$out/System/licenses/gpsp-${gpsp_src_sha}.meta"
-          for p in cores/gpsp/*.patch; do
-            test -f "$out/System/licenses/gpsp-$(basename "$p")"
-          done
-          mgba_src_commit="$(grep '^commit=' vendor/mgba_libretro.so.meta | cut -d= -f2)"
-          test -f "$out/System/licenses/mgba-${mgba_src_commit}.meta"
-          for p in cores/mgba/*.patch; do
-            test -f "$out/System/licenses/mgba-$(basename "$p")"
-          done
+          armgba_src_sha="$(cat vendor/armgba-src.sha)"
+          test -f "$out/System/licenses/armgba-${armgba_src_sha}.tar.gz"
+          test -f "$out/System/licenses/armgba-${armgba_src_sha}.meta"
 
       - name: Package
         id: package

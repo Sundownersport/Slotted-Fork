@@ -24,7 +24,7 @@ use slot_ui::{
 
 use crate::audio::Sfx;
 use crate::core_picker::{Chip, CorePicker, Outcome, Press};
-use crate::link_kind::{link_carried, link_dual, link_kind, serial_option, LinkKind};
+use crate::link_kind::{link_dual, link_kind, serial_option, LinkKind};
 use crate::link_radio::{radio_jobs, LinkRole, RadioJob, RadioJobs};
 use crate::link_screen::LinkSprites;
 use crate::link_start::{link_port, LinkFail, LinkProgress, LinkStarter, LinkStep};
@@ -2304,10 +2304,13 @@ impl App {
 
     pub fn link_mode(&self, stem: &str) -> (LinkKind, &'static str) {
         let Some((cart, auto)) = self.auto_link(stem) else {
-            return (LinkKind::Cable, "auto");
+            return (LinkKind::Cable, serial_option(LinkKind::Cable));
         };
-        let chosen = self.link_choices.get(stem).copied().unwrap_or(auto);
-        (chosen, serial_option(chosen, auto, &cart.code, &cart.title))
+        let chosen = match cart.platform.hardware() {
+            Platform::Gba => self.link_choices.get(stem).copied().unwrap_or(auto),
+            _ => LinkKind::Cable,
+        };
+        (chosen, serial_option(chosen))
     }
 
     pub fn link_active(&self) -> bool {
@@ -3277,15 +3280,15 @@ impl App {
             QuickRow::Turbo => s.turbo = !s.turbo,
             QuickRow::Rewind => s.rewind = !s.rewind,
             QuickRow::GbaBlending => {
-                s.blending_gba = s.blending_gba.step(&Blending::MGBA, right);
+                s.blending_gba = s.blending_gba.step(&Blending::ALL, right);
                 self.blending_pending = Some(self.blending_in_play());
             }
             QuickRow::GbcBlending => {
-                s.blending_gbc = s.blending_gbc.step(&Blending::MGBA, right);
+                s.blending_gbc = s.blending_gbc.step(&Blending::ALL, right);
                 self.blending_pending = Some(self.blending_in_play());
             }
             QuickRow::GbBlending => {
-                s.blending_gb = s.blending_gb.step(&Blending::MGBA, right);
+                s.blending_gb = s.blending_gb.step(&Blending::ALL, right);
                 self.blending_pending = Some(self.blending_in_play());
             }
             QuickRow::Theme => s.appearance = s.appearance.toggle(),
@@ -5383,35 +5386,6 @@ impl App {
         if self.link_active() {
             return self.refuse();
         }
-        if self.core == Core::Mgba {
-            let wireless = self
-                .seated()
-                .is_some_and(|stem| self.link_mode(stem).0 == LinkKind::Wireless);
-            if wireless {
-                self.hud.toast(Toast::NeedsGpsp, self.now());
-                return;
-            }
-            self.link_hardware = LinkKind::Cable;
-            self.radio.ask(RadioJob::Warm);
-            self.game_menu = Some(GameMenu::Pick(self.last_role));
-            return;
-        }
-        if self.platform != Platform::Gba {
-            self.hud.toast(Toast::NoLink, self.now());
-            return;
-        }
-        let carried = self
-            .seated()
-            .and_then(|stem| self.auto_link(stem))
-            .is_some_and(|(cart, _)| link_carried(&cart.code, &cart.title));
-        if !carried {
-            self.hud.toast(Toast::NoLink, self.now());
-            return;
-        }
-        if self.core != Core::Gpsp {
-            self.hud.toast(Toast::NeedsGpsp, self.now());
-            return;
-        }
         let hardware = self
             .seated()
             .map_or(LinkKind::Cable, |stem| self.link_mode(stem).0);
@@ -5524,45 +5498,15 @@ impl App {
     }
 
     fn link_switchable(&self, stem: &str) -> bool {
-        self.core == Core::Gpsp
-            && self
-                .auto_link(stem)
-                .is_some_and(|(cart, _)| link_dual(&cart.code, &cart.title))
+        self.auto_link(stem)
+            .is_some_and(|(cart, _)| link_dual(&cart.code, &cart.title))
     }
 
     fn pick_link(&mut self, role: LinkRow) {
         let Some(stem) = self.seated().map(str::to_string) else {
             return;
         };
-        let loaded = self.link_loaded.unwrap_or("auto");
-        if self.core == Core::Mgba {
-            let player = role.client_id() as u8;
-            if self.link_player == Some(player) {
-                return self.start_link(
-                    LinkStarter::spawn(role.role(), link_port()),
-                    role.client_id(),
-                );
-            }
-            if self.snapshot.as_ref().is_some_and(|s| !s.resume_trusted()) {
-                return self.refuse();
-            }
-            self.link_player = Some(player);
-            self.link_reload = Some((stem.clone(), loaded));
-            self.reload = Some(Reload {
-                stem,
-                role,
-                cancelled: false,
-                from: self.link_hardware,
-                from_serial: loaded,
-                fallback: false,
-            });
-            self.game_menu = Some(GameMenu::Working {
-                role,
-                step: LinkStep::Radio,
-                since: self.now(),
-            });
-            return;
-        }
+        let loaded = self.link_loaded.unwrap_or(serial_option(LinkKind::Cable));
         let (_, serial) = self.link_mode(&stem);
         if serial == loaded {
             return self.start_link(

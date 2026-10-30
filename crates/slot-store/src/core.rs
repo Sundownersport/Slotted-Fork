@@ -8,17 +8,15 @@ pub const SELECTED_CORE_FILE: &str = "Config/selected_core.txt";
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub enum Core {
     #[default]
-    Mgba,
-    Gpsp,
+    Armgba,
 }
 
 impl Core {
-    pub const ALL: [Core; 2] = [Core::Mgba, Core::Gpsp];
+    pub const ALL: [Core; 1] = [Core::Armgba];
 
     pub fn as_str(&self) -> &'static str {
         match self {
-            Core::Mgba => "mgba",
-            Core::Gpsp => "gpsp",
+            Core::Armgba => "armgba",
         }
     }
 
@@ -28,30 +26,23 @@ impl Core {
 
     pub fn text(self) -> &'static str {
         match self {
-            Core::Mgba => "mGBA",
-            Core::Gpsp => "gpSP",
+            Core::Armgba => "armGBA",
         }
     }
 
     pub fn parse(s: &str) -> Option<Core> {
         match s.trim().to_ascii_lowercase().as_str() {
-            "mgba" => Some(Core::Mgba),
-            "gpsp" => Some(Core::Gpsp),
+            "armgba" => Some(Core::Armgba),
             _ => None,
         }
     }
 
-    pub fn runs(self, platform: Platform) -> bool {
-        match self {
-            Core::Mgba => true,
-            Core::Gpsp => platform.hardware() == Platform::Gba,
-        }
+    pub fn runs(self, _platform: Platform) -> bool {
+        true
     }
 
-    pub fn default_for(platform: Platform) -> Core {
-        match platform {
-            Platform::Gba | Platform::Gb | Platform::Gbc | Platform::Gbav => Core::Mgba,
-        }
+    pub fn default_for(_platform: Platform) -> Core {
+        Core::Armgba
     }
 }
 

@@ -55,7 +55,7 @@ fn the_banner_says_what_happened_and_never_what_is_on_screen() {
         "a banner was added or dropped: every face is uploaded by its place in this list"
     );
     let palettes = GbColors::all().count();
-    assert_eq!(palettes, 49);
+    assert_eq!(palettes, 5);
     assert_eq!(
         all[21..21 + palettes],
         GbColors::all().map(Toast::Palette).collect::<Vec<_>>()[..],
@@ -194,11 +194,8 @@ fn a_toast_takes_the_band_from_the_bar() {
 
 #[test]
 fn a_palette_banner_names_the_palette_without_its_boot_combo() {
-    let p = GbPalette::parse("GBC Dark Green →A").unwrap();
-    assert_eq!(
-        Toast::Palette(GbColors::Palette(p)).text(),
-        "GBC Dark Green"
-    );
+    let p = GbPalette::parse("GB Pocket").unwrap();
+    assert_eq!(Toast::Palette(GbColors::Palette(p)).text(), "GB Pocket");
     assert_eq!(Toast::Palette(GbColors::Auto).text(), "Auto");
 }
 

@@ -1060,7 +1060,7 @@ fn the_game_boy_page_steps_the_palette_from_auto() {
     assert_eq!(a.gb_colors(), GbColors::Auto);
     assert_eq!(a.gb_colors_label(), "Auto");
     let grey = GbColors::Palette(GbPalette::parse("Grayscale").unwrap());
-    let last = GbColors::Palette(GbPalette::parse("SGB 4-H").unwrap());
+    let last = GbColors::Palette(GbPalette::parse("GB Light").unwrap());
     for (btn, want) in [
         (Btn::Right, grey),
         (Btn::Left, GbColors::Auto),

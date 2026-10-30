@@ -1,0 +1,40 @@
+name: check
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  host:
+    name: fmt, clippy and tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        if: success() || failure()
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Tests
+        if: success() || failure()
+        env:
+          SLOT_SILENT: '1'
+        run: cargo test --workspace --no-fail-fast
+
+  device:
+    name: device clippy
+    runs-on: ubuntu-24.04-arm
+    container: rust:1-bullseye
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Clippy
+        run: cargo clippy -p slot --no-default-features --features device -- -D warnings

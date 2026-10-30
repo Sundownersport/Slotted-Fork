@@ -302,7 +302,9 @@ impl Session {
         let mut recoloured = false;
         if let Some(p) = self.app.take_gb_colors() {
             if let Some(emu) = &self.emu {
-                emu.set_option("mgba_gb_colors", p.core_name());
+                for (key, value) in crate::core::gb_screen_options(Some(p)) {
+                    emu.set_option(key, value);
+                }
                 recoloured = true;
             }
         }
@@ -506,7 +508,9 @@ impl Session {
             Some(CoreState::Loading) => {}
             Some(CoreState::Ready) => {
                 if let (true, Some(emu)) = (self.app.palette_live(), &self.emu) {
-                    emu.set_option("mgba_gb_colors", self.app.gb_colors().core_name());
+                    for (key, value) in crate::core::gb_screen_options(Some(self.app.gb_colors())) {
+                        emu.set_option(key, value);
+                    }
                 }
                 self.app.on_core_ready()
             }
@@ -549,10 +553,7 @@ impl Session {
                 };
                 launch("resume state read");
                 let palette = crate::core::palette_for(chosen, platform, &rom, player);
-                let mut opened = open_core(
-                    &root, core, platform, serial, colour, blending, palette, player,
-                );
-                crate::core::apply_game_boy_player(&mut *opened.core, core, platform, &rom);
+                let opened = open_core(&root, core, platform, serial, colour, blending, palette);
                 launch("core opened");
                 let sav = persist::read_sav(&root, platform, &stem);
                 launch("save read");
@@ -613,7 +614,7 @@ impl Session {
     }
 
     fn reload_for_link(&mut self, stem: &str, serial: &'static str) {
-        eprintln!("slot: link: loading {stem} again with gpsp_serial={serial}");
+        eprintln!("slot: link: loading {stem} again with armgba_link_port={serial}");
         if self.emu.is_some() {
             self.app.flush_resume();
         }

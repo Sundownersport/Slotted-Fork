@@ -26,7 +26,7 @@ fn atomic_write_leaves_no_partial_file_and_no_temp_behind() {
 #[test]
 fn a_temp_left_by_an_interrupted_write_is_swept_and_nothing_else() {
     let d = tempdir().unwrap();
-    let deep = d.path().join("States/GBA/mgba/Emerald");
+    let deep = d.path().join("States/GBA/armgba/Emerald");
     std::fs::create_dir_all(&deep).unwrap();
     let stray = deep.join(".resume.state.4242.7.tmp");
     let mine = deep.join(format!(".resume.state.{}.0.tmp", std::process::id()));
@@ -294,7 +294,7 @@ fn the_quick_menu_settings_round_trip_as_their_own_lines() {
         turbo: false,
         rewind: false,
         gb_palettes: true,
-        gb_palette: GbPalette::parse("GBC Dark Green →A").unwrap(),
+        gb_palette: GbPalette::parse("GB Pocket").unwrap(),
         wallpaper_tint: WallpaperTint::Medium,
         colour_correction_gbc: true,
         shader_gbc: Shader::Grid,
@@ -326,7 +326,7 @@ fn the_quick_menu_settings_round_trip_as_their_own_lines() {
         "turbo=0",
         "rewind=0",
         "gb_palettes=1",
-        "gb_palette=GBC Dark Green →A",
+        "gb_palette=GB Pocket",
         "appearance=dark",
         "wallpaper_tint=medium",
         "bezel_gba=none",

@@ -258,12 +258,7 @@ fn a_socket_names_its_core_and_stays_open_in_the_middle() {
         let face = socket_face(core);
         assert_eq!((face.w, face.h), (SOCKET_W, SOCKET_H));
     }
-    assert_ne!(
-        socket_face(Core::Mgba).rgba,
-        socket_face(Core::Gpsp).rgba,
-        "both sockets wear the same name"
-    );
-    let open = socket_face(Core::Mgba)
+    let open = socket_face(Core::Armgba)
         .rgba
         .chunks_exact(4)
         .any(|p| p[3] == 0);
@@ -272,7 +267,7 @@ fn a_socket_names_its_core_and_stays_open_in_the_middle() {
 
 #[test]
 fn the_chip_is_padded_clear_on_every_side() {
-    for core in [None, Some(Core::Mgba), Some(Core::Gpsp)] {
+    for core in [None, Some(Core::Armgba)] {
         let face = chip_face(core);
         assert_eq!(
             (face.w, face.h),
@@ -303,19 +298,14 @@ fn a_seated_chip_wears_its_name_and_a_flying_one_is_blank() {
     };
     let blank = chip_face(None);
     assert!(
-        differs(&chip_face(Some(Core::Mgba)), &blank) > 20,
-        "mGBA left no name"
-    );
-    assert_ne!(
-        chip_face(Some(Core::Mgba)).rgba,
-        chip_face(Some(Core::Gpsp)).rgba,
-        "both cores wear the same mark"
+        differs(&chip_face(Some(Core::Armgba)), &blank) > 20,
+        "armGBA left no name"
     );
 }
 
 #[test]
 fn padding_moves_nothing() {
-    let face = chip_face(Some(Core::Gpsp));
+    let face = chip_face(Some(Core::Armgba));
     let more = padded(&face, 3);
     assert_eq!((more.w, more.h), (face.w + 6, face.h + 6));
     for (x, y) in [(0, 0), (10, 7), (face.w - 1, face.h - 1)] {
@@ -336,7 +326,7 @@ fn the_shadow_is_darkest_in_the_middle_and_gone_at_the_corners() {
 #[test]
 fn the_seated_chips_name_is_antialiased_against_the_body() {
     let red = |face: &CartFace, x: u32, y: u32| face.rgba[((y * face.w + x) * 4) as usize];
-    for core in [Core::Mgba, Core::Gpsp] {
+    for core in Core::ALL {
         let named = chip_face(Some(core));
         let blank = chip_face(None);
         let soft = (0..named.h)
