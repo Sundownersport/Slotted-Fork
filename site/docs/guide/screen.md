@@ -27,9 +27,8 @@ correction pulls the colors back toward what you'd have seen on original hardwar
 
 Original Game Boy games can be shown in other colors. Pick one under Settings → Screen → Game Boy → Palette:
 
-- **Auto** lets mGBA pick, the way a Game Boy Color colors in old games.
-- **Grayscale**, **DMG Green**, **GB Pocket** and **GB Light** for the classics.
-- The 12 Game Boy Color presets and 32 Super Game Boy palettes.
+- **Auto** runs the game as a Game Boy Color, which colors in old games.
+- **Grayscale**, **DMG Green**, **GB Pocket** and **GB Light**, measured from the real screens.
 
 <kbd>SELECT</kbd> + <kbd>L2</kbd> / <kbd>R2</kbd> step through the same list while you play.
 
@@ -92,10 +91,8 @@ enough to blur that into a steady image. On a modern screen you see the flicker.
 | Frame Blending | Does                                                        |
 |----------------|-------------------------------------------------------------|
 | Off            | Shows every frame as it is (default)                        |
-| Mix            | Blends each frame with the one before                       |
-| LCD Ghosting   | Leaves a fading trail, like the original screens. mGBA only |
-
-A game on gpSP set to LCD Ghosting gets Mix.
+| Mix            | Leaves a light trail, half as strong as LCD Ghosting        |
+| LCD Ghosting   | Leaves a fading trail, like the original screens            |
 
 ## Bezels
 

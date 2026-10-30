@@ -22,7 +22,7 @@ Skeuomorphic UI
 <div class="keys" markdown>
 
 Emulation
-:   [mGBA](https://mgba.io) and [gpSP](https://github.com/libretro/gpsp)
+:   [armGBA](https://github.com/MagnominusGit/armGBA) by Magnominus, built on [mGBA](https://mgba.io) and [Gambatte](https://github.com/pokemon-speedrunning/gambatte-core)
 
 Underlying OS
 :   [BaseOS](https://github.com/pvaibhav/BaseOS) by [Prashant Vaibhav](https://github.com/pvaibhav)

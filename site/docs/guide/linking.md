@@ -22,25 +22,9 @@ Closing the lid, powering off or ejecting also ends a link session.
 
 ## Which games can link
 
-It depends on the game and the emulator.
+Game Boy, Game Boy Color and GBA games all link over the cable. Each device runs its own game with its own save, joined by [armGBA](https://github.com/MagnominusGit/armGBA)'s emulated link cable, so each player needs their own copy of the game.
 
-### On mGBA
-
-Game Boy, Game Boy Color and GBA games on mGBA link like a cable. The host sends its game over and both devices run the same thing in lockstep. That's how Mario Kart works.
-
-While you're linked like this, the joining player is playing the host's game. Your own save and resume state on the joining device are left alone.
-
-Both devices need the same BIOS setup. If one has a `gba_bios.bin` and the other doesn't, the link ends with "BIOS does not match".
-
-### On gpSP
-
-gpSP does the GBA link cable for Pokémon and both Advance Wars, and the wireless adapter for FireRed, LeafGreen and Emerald.
-
-Trading Pokémon? Put the game on gpSP first with <kbd>START</kbd> on the shelf, on both devices.
-
-Pokémon FireRed, LeafGreen and Emerald can switch between cable and wireless with <kbd>SELECT</kbd> on the link screen.
-
-If slot says "Please switch to gpSP", the game needs the wireless adapter. Change the emulator with <kbd>START</kbd> on the shelf. See [Playing Games](playing.md).
+Games that used the GBA Wireless Adapter link over the adapter instead. Pokémon FireRed, LeafGreen and Emerald can switch between cable and wireless with <kbd>SELECT</kbd> on the link screen.
 
 ## While you're linked
 

@@ -64,7 +64,7 @@ I don't recommend editing these by hand but it's your life.
 | `slot.state`                                    | Your settings and where you left off               |
 | `controls.txt`, `shortcuts.txt`, `carousel.txt` | Your button layout                                 |
 | `favorites.txt`, `recents.txt`                  | Your Favorites and Recents                         |
-| `selected_core.txt`                             | Which emulator each GBA game uses                  |
+| `selected_core.txt`                             | Which emulator each game uses                      |
 | `video_mode.txt`                                | Which Game Boy games you've stretched with L1      |
 | `cart_shell.txt`                                | Cart colors, see [Customization](customizing.md). A `Labels/cart_shell.txt` overrides it |
 | `bootlogo.bmp`                                  | Your boot logo, if you've made one                 |

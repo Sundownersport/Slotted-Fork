@@ -78,5 +78,3 @@ slot doesn't need any BIOS files. If you have your own, drop them into `BIOS/` a
 - `gba_bios.bin`
 - `gbc_bios.bin`
 - `gb_bios.bin`
-
-If you link with mGBA, both devices need the same BIOS setup. See [Linking Up](linking.md).

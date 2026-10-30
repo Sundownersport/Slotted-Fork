@@ -10,7 +10,7 @@ If you'd rather toggle it with one press, bind Fast Forward Toggle in [Shortcuts
 
 Settings → Gameplay → Fast Forward sets the cap: 1.5x, 2x, 3x, 4x or 6x. Off turns fast-forward off.
 
-Some games are heavier than others, and slot runs as fast as it can up to the cap. mGBA uses more system resources than gpSP and will have a slower top fast forward speed.
+Some games are heavier than others, and slot runs as fast as it can up to the cap.
 
 You can optionally turn on Fast Forward Sound. slot mutes fast forward by default because it sounds like chipmunks and drives me nuts.
 

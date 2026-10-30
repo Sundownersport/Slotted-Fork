@@ -26,7 +26,7 @@ There's one shelf per system, along with two special shelves, in this order:
 
 slot does not show empty shelves. If you only have GBA games, you only get the GBA shelf.
 
-Game Boy Advance Video carts can be optionally placed in `Games/GBAV`. Here they get their own shelf and Game Boy Player support is disabled when using mGBA.
+Game Boy Advance Video carts can be optionally placed in `Games/GBAV`. Here they get their own shelf.
 
 Within a shelf, games are sorted by name. Names starting with a number come first.
 

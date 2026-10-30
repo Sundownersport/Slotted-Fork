@@ -52,6 +52,6 @@ There are two options in Settings → Gameplay that control this:
 
 ## States and cores
 
-States are tied to the emulator that made them. Switch a GBA game from mGBA to gpSP and you will have no save states. Switch back and they're all still there.
+States are tied to the emulator that made them. States made by older versions of slot on mGBA or gpSP don't show up on armGBA, but they're left where they were.
 
 States live in `States/`. See [Storage Reference](storage.md).

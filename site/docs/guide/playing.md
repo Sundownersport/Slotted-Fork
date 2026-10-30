@@ -26,22 +26,13 @@ Tap <kbd>MENU</kbd> while playing. The game pauses behind it.
 | Settings | Screen and Gameplay for the system you're playing, and Controls |
 | Exit Game | Ejects the cart |
 
-## Picking an emulator
+## The emulator
 
-GBA games can use [mGBA](https://mgba.io) or [gpSP](https://github.com/libretro/gpsp). Game Boy and Game Boy Color games always use mGBA.
+Every game runs on [armGBA](https://github.com/MagnominusGit/armGBA). Its GBA side is a recompiler built on parts of mGBA, and its Game Boy and Game Boy Color side is Gambatte.
 
-On the shelf, press <kbd>START</kbd> on a GBA cart. It opens to show the circuit board with a chip in one of two sockets. <kbd>Left</kbd> puts it on mGBA, <kbd>Right</kbd> on gpSP. <kbd>A</kbd> saves your choice, <kbd>B</kbd> backs out.
+!!! warning "Save states from mGBA and gpSP don't carry over"
 
-slot remembers the choice per game. mGBA is the default.
-
-Which should you use?
-
-- mGBA is more accurate but at the expense of using more resources.
-- gpSP is faster but less accurate. It's also the one that does the wireless adapter for Pokémon trading. See [Linking Up](linking.md).
-
-!!! warning "Save states belong to a core"
-
-    States made on mGBA don't show up on gpSP and the other way around. Your battery save is shared, so in-game saves carry over.
+    States made by older versions of slot on mGBA or gpSP don't show up on armGBA. Your battery save is shared, so in-game saves carry over.
 
 ## Battery saves
 

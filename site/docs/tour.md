@@ -15,10 +15,6 @@ hide:
 
 Press <kbd>Y</kbd> to star the cart you're on.<br>Press <kbd>Y</kbd> again to remove.
 
-### Pick an Emulator { #core-picker data-clip="core-picker.mp4" }
-
-Press <kbd>START</kbd> to open a cart.<br><kbd>Left</kbd> and <kbd>Right</kbd> swap the core "chip".<br><kbd>A</kbd> saves your choice.
-
 ### Insert and Play { #insert data-clip="insert.mp4" }
 
 Tapping <kbd>A</kbd> loads the last save state.<br>Holding <kbd>A</kbd> starts the game fresh.
